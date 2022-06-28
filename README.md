@@ -1,2 +1,3 @@
-# lawndon
-Autonomous mower guided with LoRaWAN
+# Lawndon
+
+An autonomous mower guided with LoRaWAN
