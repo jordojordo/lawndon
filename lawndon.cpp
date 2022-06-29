@@ -1,65 +1,23 @@
-// sensors
-enum {
-  SEN_BAT_VOLTAGE,
-  SEN_CHG_CURRENT,
-  SEN_CHG_VOLTAGE,
-  SEN_MOTOR_LEFT,
-  SEN_MOTOR_RIGHT,
-  SEN_MOTOR_MOW,
-  SEN_BUMPER_LEFT,
-  SEN_BUMPER_RIGHT,
-  SEN_SONAR_FRONT,
-  SEN_SONAR_BACK,
-  SEN_SONAR_LEFT,
-  SEN_SONAR_RIGHT
-};
+#include "lawndon.h"
+#include "motor.h"
+#include "mower.h"
+#include "time.h"
+#include <Arduino.h>
 
-// actuators
-enum { ACT_MOTOR_LEFT, ACT_MOTOR_RIGHT, ACT_MOTOR_MOW, ACT_LED };
+Lawndon::Lawndon() {
+  stateLast = stateCurrent = stateNext = STATE_OFF;
+  stateStartTime = 0;
 
-// errors
-enum {
-  ERR_MOTOR_LEFT,
-  ERR_MOTOR_RIGHT,
-  ERR_MOTOR_MOW,
-  ERR_BATTERY,
-  ERR_LORA_COMM,
-  ERR_LORA_DATA,
-  ERR_STUCK,
-  ERR_ENUM_COUNT
-};
+  motorLeftRpmCurrent = motorRightRpmCurrent = 0;
+  motorLeftSpeedSet = motorRightSpeedSet = 0;
+}
 
-// state
-enum {
-  STATE_OFF,
-  STATE_REMOTE,
-  STATE_FORWARD,
-  STATE_REVERSE,
-  STATE_ROLL,
-  STATE_CIRCLE,
-  STATE_ERROR,
-  STATE_LOCATE_FIND,
-  STATE_LOCATE_TRACK,
-  STATE_BUMPER_FORWARD,
-  STATE_BUMPER_REVERSE
-};
+void Lawndon::setEmerSwitch() { setActuator(ACT_EMER_SW, emerSwitch); }
 
-// roll types
-enum { LEFT, RIGHT };
+void Lawndon::setup() {
+  setMotorPwm(0, 0);
+  setEmerSwitch();
 
-// console
-enum {
-  CONSOLE_SENSOR_COUNTERS,
-  CONSOLE_SENSOR_VALUES,
-  CONSOLE_PERIMETER,
-  CONSOLE_OFF
-};
-
-class Lawndon {
-public:
-  Lawndon();
-
-  virtual void setup();
-
-  virtual void loop();
-};
+  stateStartTime = 0;
+  Console.println("______________BEGIN______________");
+}
