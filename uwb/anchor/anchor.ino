@@ -17,27 +17,25 @@
 #define I2C_SDA 4 // I2C SDA pin
 #define I2C_SCL 5 // I2C SCL pin
 
-uint16_t shortAddress = 130; // 0x82
 /*
-  TODO: I think the short address is actually the first two sections
-  of the MAC address, so it should be 0x5BD5
-  when running the tag I see this:
-  "Range from: D55B	Range: 0.84 m	RX Power: -81.05 dBm"
-  so the short address is reversed
+  Short address and MAC address for the anchors:
+    "50:00:22:EA:82:60:3B:9A", // 80
+    "51:00:22:EA:82:60:3B:9A", // 81
+    "52:00:22:EA:82:60:3B:9A"  // 82
 */
-char macAddress[] = "5B:D5:A9:9A:E2:9A"; // 0x82 == :9A
+uint16_t shortAddress = 80; // 0x50
+char macAddress[] = "50:00:22:EA:82:60:3B:9A";
 
 // Calibrated Antenna Delay setting for this anchor
-uint16_t antennaDelay = 16580;
+uint16_t antennaDelay = 16898;
 
 // Previously determined calibration results for antenna delay
-// #1 16630
-// #2 16610
-// #3 16607
-// #4 16580
+// #1 (80) 16898
+// #2 (81) 16446
+// #3 (82) 16561
 
 // Calibration distance
-float dist_m = (285 - 1.75) * 0.0254; // meters
+float dist_m = 3.078; // meters
 
 Adafruit_SSD1306 display(128, 64, &Wire, -1);
 
@@ -118,12 +116,11 @@ void inactiveDevice(DW1000Device *device) {
 void initDisplay() {
   display.clearDisplay();
 
-  display.setTextSize(2);              // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE); // Draw white text
-  display.setCursor(0, 0);             // Start at top-left corner
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
   display.println(F("UWB Anchor"));
 
-  display.setTextSize(1);
   display.setCursor(0, 20);
   display.print(F("Device Address: "));
   display.print(shortAddress, HEX);
