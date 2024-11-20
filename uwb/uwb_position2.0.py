@@ -8,7 +8,6 @@ import numpy as np
 import math
 
 # Constants
-DISTANCE_ANCHOR = 18.4  # in meters
 METER_TO_PIXEL = 22
 
 ANCHOR_IDS = ["50", "51", "52"]
@@ -17,25 +16,46 @@ ANCHOR_IDS = ["50", "51", "52"]
 uwb_list = []
 data_lock = threading.Lock()
 
+def calculate_anchor_positions():
+    d_50_51 = 10.0 # Distance between anchor 50 and 51 in meters
+    d_50_52 = 8.0 # Distance between anchor 50 and 52 in meters
+    d_51_52 = 6.0 # Distance between anchor 51 and 52 in meters
+
+    anchor_positions = {}
+    anchor_positions['50'] = (0.0, 0.0)
+    anchor_positions['51'] = (d_50_51, 0.0)
+
+    x = (d_50_51**2 + d_50_52**2 - d_51_52**2) / (2 * d_50_51)
+    y = math.sqrt(d_50_52**2 - x**2)
+
+    anchor_positions['52'] = (x, y)
+
+    return anchor_positions
+
+anchor_positions_dict = calculate_anchor_positions()
+
+# Calculate maximum x and y values from anchor positions
+all_x = [pos[0] for pos in anchor_positions_dict.values()]
+all_y = [pos[1] for pos in anchor_positions_dict.values()]
+max_x = max(all_x)
+max_y = max(all_y)
+
 def screen_init(width=1200, height=800, t=turtle):
     t.setup(width, height)
     t.tracer(False)
     t.hideturtle()
     t.speed(0)
-
-    # Set world coordinates to match the area of interest
+    # Adjust world coordinates based on anchor positions
     t.setworldcoordinates(
         -5 * METER_TO_PIXEL,
         -5 * METER_TO_PIXEL,
-        (DISTANCE_ANCHOR + 5) * METER_TO_PIXEL,
-        (DISTANCE_ANCHOR * math.sqrt(3) / 2 + 5) * METER_TO_PIXEL,
+        (max_x + 5) * METER_TO_PIXEL,
+        (max_y + 5) * METER_TO_PIXEL,
     )
-
 
 def turtle_init(t=turtle):
     t.hideturtle()
     t.speed(0)
-
 
 def draw_line(x0, y0, x1, y1, color="black", t=turtle):
     t.pencolor(color)
@@ -44,15 +64,6 @@ def draw_line(x0, y0, x1, y1, color="black", t=turtle):
     t.down()
     t.goto(x1, y1)
     t.up()
-
-
-def draw_fastU(x, y, length, color="black", t=turtle):
-    draw_line(x, y, x, y + length, color, t)
-
-
-def draw_fastV(x, y, length, color="black", t=turtle):
-    draw_line(x, y, x + length, y, color, t)
-
 
 def draw_cycle(x, y, r, color="black", t=turtle):
     t.pencolor(color)
@@ -63,14 +74,12 @@ def draw_cycle(x, y, r, color="black", t=turtle):
     t.circle(r)
     t.up()
 
-
 def fill_cycle(x, y, r, color="black", t=turtle):
     t.up()
     t.goto(x, y)
     t.down()
     t.dot(r, color)
     t.up()
-
 
 def write_txt(x, y, txt, color="black", t=turtle, f=("Arial", 12, "normal")):
     t.pencolor(color)
@@ -80,53 +89,31 @@ def write_txt(x, y, txt, color="black", t=turtle, f=("Arial", 12, "normal")):
     t.write(txt, move=False, align="left", font=f)
     t.up()
 
-
-def draw_rect(x, y, w, h, color="black", t=turtle):
-    t.pencolor(color)
-    t.up()
-    t.goto(x, y)
-    t.down()
-    t.goto(x + w, y)
-    t.goto(x + w, y + h)
-    t.goto(x, y + h)
-    t.goto(x, y)
-    t.up()
-
-
-def fill_rect(x, y, w, h, color=("black", "black"), t=turtle):
-    t.begin_fill()
-    draw_rect(x, y, w, h, color, t)
-    t.end_fill()
-
-
 def clean(t=turtle):
     t.clear()
-
 
 def draw_uwb_anchor(x_m, y_m, txt, range, t):
     x = x_m * METER_TO_PIXEL
     y = y_m * METER_TO_PIXEL
-    r = 20
+    r = 10
     fill_cycle(x, y, r, "green", t)
     write_txt(
-        x + r, y, txt + ": " + str(range) + "M", "black", t, f=("Arial", 16, "normal")
+        x + r, y, txt + ": " + str(range) + "m", "black", t, f=("Arial", 12, "normal")
     )
-
 
 def draw_uwb_tag(x_m, y_m, txt, t):
     x = x_m * METER_TO_PIXEL
     y = y_m * METER_TO_PIXEL
-    r = 20
+    r = 10
     fill_cycle(x, y, r, "blue", t)
     write_txt(
-        x,
+        x + r,
         y,
         txt + ": (" + str(round(x_m, 2)) + ", " + str(round(y_m, 2)) + ")",
         "black",
         t,
-        f=("Arial", 16, "normal"),
+        f=("Arial", 12, "normal"),
     )
-
 
 def tag_pos(positions, distances):
     if len(positions) < 3:
@@ -142,12 +129,12 @@ def tag_pos(positions, distances):
 
         # Formulate matrices
         A = np.array([
-            [x2 - x1, y2 - y1],
-            [x3 - x1, y3 - y1]
+            [2*(x2 - x1), 2*(y2 - y1)],
+            [2*(x3 - x1), 2*(y3 - y1)]
         ])
         B = np.array([
-            0.5 * ((x2**2 - x1**2 + y2**2 - y1**2) - (r2**2 - r1**2)),
-            0.5 * ((x3**2 - x1**2 + y3**2 - y1**2) - (r3**2 - r1**2))
+            r1**2 - r2**2 - x1**2 + x2**2 - y1**2 + y2**2,
+            r1**2 - r3**2 - x1**2 + x3**2 - y1**2 + y3**2
         ])
 
         # Solve for x and y
@@ -158,10 +145,8 @@ def tag_pos(positions, distances):
         print(f"Error calculating position data: {e}")
         return -1, -1
 
-
 def uwb_range_offset(uwb_range):
     return uwb_range
-
 
 def socket_listener():
     global uwb_list
@@ -204,28 +189,29 @@ def main():
     # Start the socket listener in a separate thread
     threading.Thread(target=socket_listener, daemon=True).start()
 
+    # Calculate anchor positions
+    # anchor_positions_dict is already calculated above
+
     # Initialize the Turtle screen
     screen_init()
 
     # Turtle instances
-    t_ui = turtle.Turtle()
     t_anchors = [turtle.Turtle() for _ in ANCHOR_IDS]
     t_tag = turtle.Turtle()
-    turtle_init(t_ui)
     for t in t_anchors:
         turtle_init(t)
     turtle_init(t_tag)
 
     # Anchor positions in meters
     anchor_positions = [
-        (0.0, 0.0),  # Anchor 50
-        (DISTANCE_ANCHOR, 0.0),  # Anchor 51
-        (DISTANCE_ANCHOR / 2, DISTANCE_ANCHOR * math.sqrt(3) / 2),  # Anchor 52
+        anchor_positions_dict['50'],
+        anchor_positions_dict['51'],
+        anchor_positions_dict['52'],
     ]
     anchor_ranges = [0.0] * len(ANCHOR_IDS)
 
     def update():
-        nonlocal anchor_ranges
+        nonlocal anchor_ranges, anchor_positions
         node_count = 0
         with data_lock:
             local_uwb_list = uwb_list.copy()
@@ -268,7 +254,6 @@ def main():
     update()
 
     turtle.mainloop()
-
 
 if __name__ == "__main__":
     main()
