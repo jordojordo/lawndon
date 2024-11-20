@@ -27,10 +27,10 @@ uint16_t shortAddress = 80; // 0x50
 char macAddress[] = "50:00:22:EA:82:60:3B:9A";
 
 // Calibrated Antenna Delay setting for this anchor
-uint16_t antennaDelay = 16898;
+uint16_t antennaDelay = 16641;
 
 // Previously determined calibration results for antenna delay
-// #1 (80) 16898
+// #1 (80) 16641
 // #2 (81) 16446
 // #3 (82) 16561
 
@@ -76,7 +76,7 @@ void setup() {
   DW1000.setAntennaDelay(antennaDelay);
 
   // Same mode as the tag
-  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_ACCURACY);
+  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
   DW1000.commitConfiguration();
 
   // Attach callbacks
@@ -85,7 +85,7 @@ void setup() {
   DW1000Ranging.attachInactiveDevice(inactiveDevice);
 
   // Start as anchor with long data range accuracy and static short address
-  DW1000Ranging.startAsAnchor(macAddress, DW1000.MODE_LONGDATA_RANGE_ACCURACY,
+  DW1000Ranging.startAsAnchor(macAddress, DW1000.MODE_LONGDATA_RANGE_LOWPOWER,
                               false);
 }
 

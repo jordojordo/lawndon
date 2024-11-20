@@ -18,7 +18,7 @@ const uint8_t PIN_RST = 27; // Reset pin
 const uint8_t PIN_IRQ = 34; // IRQ pin
 const uint8_t PIN_SS = 21;  // SPI select pin
 
-char anchorAddress[] = "81:00:22:EA:82:60:3B:9A";
+char anchorAddress[] = "80:00:22:EA:82:60:3B:9A";
 float targetDistance = 3.078; // Measured distance to anchor in meters
 
 uint16_t antennaDelay = 16600; // Starting value

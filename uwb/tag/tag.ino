@@ -72,18 +72,19 @@ void setup() {
   // Set device configuration
   DW1000.setDeviceAddress(shortAddress);
   DW1000.setNetworkId(10);
+  DW1000.enableMode(DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
 
   DW1000Ranging.attachNewRange(newRange);
   DW1000Ranging.attachNewDevice(newDevice);
   DW1000Ranging.attachInactiveDevice(inactiveDevice);
 
   // Enable the filter to smooth the distance
-  // DW1000Ranging.useRangeFilter(true);
+  DW1000Ranging.useRangeFilter(true);
 
   DW1000.commitConfiguration();
 
   // Start as tag with long data range accuracy and static short address
-  DW1000Ranging.startAsTag(macAddress, DW1000.MODE_LONGDATA_RANGE_ACCURACY,
+  DW1000Ranging.startAsTag(macAddress, DW1000.MODE_LONGDATA_RANGE_LOWPOWER,
                            false);
 
   uwb_data = init_link();
@@ -96,9 +97,11 @@ void loop() {
     make_link_json(uwb_data, &all_json);
     send_udp(&all_json);
     display_uwb(uwb_data); // Update the display
+    printAllRanges();
     runtime = millis();
   }
 }
+
 
 void newDevice(DW1000Device *device) {
   Serial.print("New device detected: ");
@@ -109,18 +112,15 @@ void newDevice(DW1000Device *device) {
 }
 
 void newRange() {
-  Serial.print("Range from: ");
-  Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
-  Serial.print("\tRange: ");
-  Serial.print(DW1000Ranging.getDistantDevice()->getRange());
-  Serial.print(" m\tRX Power: ");
-  Serial.print(DW1000Ranging.getDistantDevice()->getRXPower());
-  Serial.println(" dBm");
+  // Update the linked list with the new range data
+  uint16_t anchorAddress = DW1000Ranging.getDistantDevice()->getShortAddress();
+  float range = DW1000Ranging.getDistantDevice()->getRange();
+  float rxPower = DW1000Ranging.getDistantDevice()->getRXPower();
 
-  fresh_link(uwb_data, DW1000Ranging.getDistantDevice()->getShortAddress(),
-             DW1000Ranging.getDistantDevice()->getRange(),
-             DW1000Ranging.getDistantDevice()->getRXPower());
-  // print_link(uwb_data);
+  fresh_link(uwb_data, anchorAddress, range, rxPower);
+
+  Serial.print("Updated range for anchor: ");
+  Serial.println(anchorAddress, HEX);
 }
 
 void inactiveDevice(DW1000Device *device) {
@@ -140,7 +140,7 @@ void send_udp(String *msg_json) {
       return;
     }
   }
-  client.print(*msg_json);
+  client.print(*msg_json + "\n");
   Serial.println("Data sent: " + *msg_json);
 }
 
@@ -163,13 +163,13 @@ void initDisplay(void) {
 }
 
 void display_uwb(struct MyLink *p) {
-  struct MyLink *temp = p;
+  struct MyLink *temp = p->next; // Start from the first actual node
   int row = 0;
 
   display.clearDisplay();
   display.setTextColor(SSD1306_WHITE);
 
-  if (temp->next == NULL) {
+  if (temp == NULL) {
     display.setTextSize(2);
     display.setCursor(0, 0);
     display.println("No Anchor");
@@ -177,30 +177,43 @@ void display_uwb(struct MyLink *p) {
     return;
   }
 
-  while (temp->next != NULL) {
-    temp = temp->next;
-
+  while (temp != NULL) {
     char c[30];
-    sprintf(c, "%.1f m",
-            (temp->range[0] + temp->range[1] + temp->range[2]) / 3);
-    display.setTextSize(2);
-    display.setCursor(0, row * 32);
+    sprintf(c, "A%X: %.1f m", temp->anchor_addr, temp->averageRange);
+    display.setTextSize(1);
+    display.setCursor(0, row * 16);
     display.println(c);
 
-    sprintf(c, "%.2f dbm", temp->dbm);
-    display.setTextSize(2);
-    display.setCursor(0, row * 32 + 16);
+    sprintf(c, "RX: %.2f dBm", temp->dbm);
+    display.setCursor(0, row * 16 + 8);
     display.println(c);
 
     row++;
 
-    if (row >= 2) { // Display up to 2 anchors
+    if (row >= 4) {
       break;
     }
+
+    temp = temp->next;
   }
 
   display.display();
-  delay(100);
+}
 
-  return;
+void printAllRanges() {
+  struct MyLink *temp = uwb_data->next; // Skip the head node
+
+  Serial.println("Current Ranges to Anchors:");
+
+  while (temp != NULL) {
+    Serial.print("Anchor ");
+    Serial.print(temp->anchor_addr, HEX);
+    Serial.print(": Range = ");
+    Serial.print(temp->averageRange, 2);
+    Serial.print(" m, RX Power = ");
+    Serial.print(temp->dbm, 2);
+    Serial.println(" dBm");
+    temp = temp->next;
+  }
+  Serial.println("------------------------------");
 }
