@@ -1,6 +1,4 @@
-import time
 import turtle
-import cmath
 import socket
 import json
 import threading
@@ -16,21 +14,23 @@ ANCHOR_IDS = ["50", "51", "52"]
 uwb_list = []
 data_lock = threading.Lock()
 
+
 def calculate_anchor_positions():
-    d_50_51 = 10.0 # Distance between anchor 50 and 51 in meters
-    d_50_52 = 8.0 # Distance between anchor 50 and 52 in meters
-    d_51_52 = 6.0 # Distance between anchor 51 and 52 in meters
+    d_50_51 = 10.0  # Distance between anchor 50 and 51 in meters
+    d_50_52 = 8.0  # Distance between anchor 50 and 52 in meters
+    d_51_52 = 6.0  # Distance between anchor 51 and 52 in meters
 
     anchor_positions = {}
-    anchor_positions['50'] = (0.0, 0.0)
-    anchor_positions['51'] = (d_50_51, 0.0)
+    anchor_positions["50"] = (0.0, 0.0)
+    anchor_positions["51"] = (d_50_51, 0.0)
 
     x = (d_50_51**2 + d_50_52**2 - d_51_52**2) / (2 * d_50_51)
     y = math.sqrt(d_50_52**2 - x**2)
 
-    anchor_positions['52'] = (x, y)
+    anchor_positions["52"] = (x, y)
 
     return anchor_positions
+
 
 anchor_positions_dict = calculate_anchor_positions()
 
@@ -39,6 +39,7 @@ all_x = [pos[0] for pos in anchor_positions_dict.values()]
 all_y = [pos[1] for pos in anchor_positions_dict.values()]
 max_x = max(all_x)
 max_y = max(all_y)
+
 
 def screen_init(width=1200, height=800, t=turtle):
     t.setup(width, height)
@@ -53,9 +54,11 @@ def screen_init(width=1200, height=800, t=turtle):
         (max_y + 5) * METER_TO_PIXEL,
     )
 
+
 def turtle_init(t=turtle):
     t.hideturtle()
     t.speed(0)
+
 
 def draw_line(x0, y0, x1, y1, color="black", t=turtle):
     t.pencolor(color)
@@ -64,6 +67,7 @@ def draw_line(x0, y0, x1, y1, color="black", t=turtle):
     t.down()
     t.goto(x1, y1)
     t.up()
+
 
 def draw_cycle(x, y, r, color="black", t=turtle):
     t.pencolor(color)
@@ -74,12 +78,14 @@ def draw_cycle(x, y, r, color="black", t=turtle):
     t.circle(r)
     t.up()
 
+
 def fill_cycle(x, y, r, color="black", t=turtle):
     t.up()
     t.goto(x, y)
     t.down()
     t.dot(r, color)
     t.up()
+
 
 def write_txt(x, y, txt, color="black", t=turtle, f=("Arial", 12, "normal")):
     t.pencolor(color)
@@ -89,8 +95,10 @@ def write_txt(x, y, txt, color="black", t=turtle, f=("Arial", 12, "normal")):
     t.write(txt, move=False, align="left", font=f)
     t.up()
 
+
 def clean(t=turtle):
     t.clear()
+
 
 def draw_uwb_anchor(x_m, y_m, txt, range, t):
     x = x_m * METER_TO_PIXEL
@@ -100,6 +108,7 @@ def draw_uwb_anchor(x_m, y_m, txt, range, t):
     write_txt(
         x + r, y, txt + ": " + str(range) + "m", "black", t, f=("Arial", 12, "normal")
     )
+
 
 def draw_uwb_tag(x_m, y_m, txt, t):
     x = x_m * METER_TO_PIXEL
@@ -115,6 +124,7 @@ def draw_uwb_tag(x_m, y_m, txt, t):
         f=("Arial", 12, "normal"),
     )
 
+
 def tag_pos(positions, distances):
     if len(positions) < 3:
         print("Error: At least three anchors are required.")
@@ -128,14 +138,13 @@ def tag_pos(positions, distances):
         r3 = distances[2]
 
         # Formulate matrices
-        A = np.array([
-            [2*(x2 - x1), 2*(y2 - y1)],
-            [2*(x3 - x1), 2*(y3 - y1)]
-        ])
-        B = np.array([
-            r1**2 - r2**2 - x1**2 + x2**2 - y1**2 + y2**2,
-            r1**2 - r3**2 - x1**2 + x3**2 - y1**2 + y3**2
-        ])
+        A = np.array([[2 * (x2 - x1), 2 * (y2 - y1)], [2 * (x3 - x1), 2 * (y3 - y1)]])
+        B = np.array(
+            [
+                r1**2 - r2**2 - x1**2 + x2**2 - y1**2 + y2**2,
+                r1**2 - r3**2 - x1**2 + x3**2 - y1**2 + y3**2,
+            ]
+        )
 
         # Solve for x and y
         position = np.linalg.lstsq(A, B, rcond=None)[0]
@@ -145,8 +154,10 @@ def tag_pos(positions, distances):
         print(f"Error calculating position data: {e}")
         return -1, -1
 
+
 def uwb_range_offset(uwb_range):
     return uwb_range
+
 
 def socket_listener():
     global uwb_list
@@ -160,7 +171,7 @@ def socket_listener():
 
     conn, addr = sock.accept()
     print(f"Connected by {addr}")
-    buffer = ''
+    buffer = ""
 
     while True:
         try:
@@ -170,8 +181,8 @@ def socket_listener():
                 break  # Connection closed
 
             buffer += data
-            while '\n' in buffer:
-                line, buffer = buffer.split('\n', 1)
+            while "\n" in buffer:
+                line, buffer = buffer.split("\n", 1)
                 if line:
                     uwb_data = json.loads(line)
                     with data_lock:
@@ -184,6 +195,7 @@ def socket_listener():
             print(f"Error reading data: {e}")
             break
     conn.close()
+
 
 def main():
     # Start the socket listener in a separate thread
@@ -204,9 +216,9 @@ def main():
 
     # Anchor positions in meters
     anchor_positions = [
-        anchor_positions_dict['50'],
-        anchor_positions_dict['51'],
-        anchor_positions_dict['52'],
+        anchor_positions_dict["50"],
+        anchor_positions_dict["51"],
+        anchor_positions_dict["52"],
     ]
     anchor_ranges = [0.0] * len(ANCHOR_IDS)
 
@@ -254,6 +266,7 @@ def main():
     update()
 
     turtle.mainloop()
+
 
 if __name__ == "__main__":
     main()
