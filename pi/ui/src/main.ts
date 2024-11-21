@@ -9,7 +9,7 @@ import router from './router'
 
 const app = createApp(App)
 
-const socket: Socket = io('http://0.0.0.0:8080', {
+const socket: Socket = io('http://0.0.0.0:5000', {
   transports: ['websocket'],
 })
 

@@ -12,18 +12,14 @@ const io = new Server(httpServer, {
 
 const PORT = 5000;
 
-app.use(express.static('static'));
+app.use(express.static(path.join(__dirname + '../../ui/index.html')));
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '../../ui');
+  res.sendFile(path.join(__dirname + '../../ui/index.html'));
 });
 
 app.get('/api/config', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../../config/anchorPositions.json'));
-});
-
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../../ui'));
+  res.sendFile(path.join(__dirname, '../../config/anchorPositions.json'));
 });
 
 io.on('connection', (socket) => {
