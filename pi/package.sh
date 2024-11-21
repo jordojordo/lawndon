@@ -24,6 +24,7 @@ pnpm build:server
 echo "Preparing the package directory..."
 mkdir $PROJECT_NAME
 cp -r server/dist $PROJECT_NAME/server
+cp -r server/node_modules $PROJECT_NAME/server
 cp -r ui/dist $PROJECT_NAME/ui
 cp -r config $PROJECT_NAME/
 cp package.json $PROJECT_NAME/
