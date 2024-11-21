@@ -1,6 +1,6 @@
-#include <SPI.h>
-#include "DW1000Ranging.h"
 #include "DW1000.h"
+#include "DW1000Ranging.h"
+#include <SPI.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -58,12 +58,11 @@ void setup() {
   DW1000Ranging.attachInactiveDevice(inactiveDevice);
 
   // Start as anchor
-  DW1000Ranging.startAsAnchor(anchorAddress, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+  DW1000Ranging.startAsAnchor(anchorAddress,
+                              DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
 }
 
-void loop() {
-  DW1000Ranging.loop();
-}
+void loop() { DW1000Ranging.loop(); }
 
 void newRange() {
   static float lastDelta = 0.0;

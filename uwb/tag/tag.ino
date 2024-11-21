@@ -102,7 +102,6 @@ void loop() {
   }
 }
 
-
 void newDevice(DW1000Device *device) {
   Serial.print("New device detected: ");
   Serial.print("Short Address: ");
