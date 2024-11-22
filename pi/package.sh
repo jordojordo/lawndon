@@ -32,7 +32,7 @@ cp package.json $PROJECT_NAME/
 echo "Creating the tar.gz archive"
 tar -czf $TARGET_ARCHIVE $PROJECT_NAME
 
-# rm -rf $PROJECT_NAME
+rm -rf $PROJECT_NAME
 
 echo "Build and transfer complete"
 echo "To run the app on the Raspberry Pi:"
