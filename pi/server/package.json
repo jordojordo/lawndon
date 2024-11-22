@@ -7,9 +7,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "build": "tsc --outDir dist",
-    "dev": "nodemon --watch src --ext ts --exec 'node --loader ts-node/esm ./src/server.ts'",
-    "lint": "npx eslint .",
-    "format": "npx eslint . --fix"
+    "dev": "nodemon --watch src --ext ts --exec 'node --loader ts-node/esm ./src/server.ts'"
   },
   "keywords": [],
   "author": "",
@@ -25,12 +23,10 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.9.1",
-    "eslint": "^9.15.0",
-    "globals": "^15.12.0",
     "http-proxy-middleware": "^3.0.3",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.6.3"
   }
 }
