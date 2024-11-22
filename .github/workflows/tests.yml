@@ -43,9 +43,8 @@ jobs:
 
   package-lawndon-pi:
     runs-on: ubuntu-latest
-    with:
-      env:
-        WORKING_DIR: ./pi
+    env:
+      WORKING_DIR: ./pi
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
