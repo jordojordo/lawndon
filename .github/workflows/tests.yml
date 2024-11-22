@@ -8,7 +8,7 @@ on:
     - cron: "0 4 * * 4"
 
 jobs:
-  build:
+  build-lawndon:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -40,3 +40,51 @@ jobs:
           verbose: false
           cli-compile-flags: |
             - --export-binaries
+
+  package-lawndon-pi:
+    runs-on: ubuntu-latest
+    with:
+      env:
+        WORKING_DIR: ./pi
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies for UI
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pnpm install:ui
+
+      - name: Build UI
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pnpm build:ui
+
+      - name: Install dependencies for Server
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pnpm install:server
+
+      - name: Build Server
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          pnpm build:server
+
+      - name: Run package script
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          ./package.sh
+
+      - name: Verify package contents
+        run: |
+          tar -tf lawndon-pi.tar.gz
