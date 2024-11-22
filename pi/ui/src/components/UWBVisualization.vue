@@ -25,8 +25,8 @@ export default defineComponent({
 
     // D3 variables
     let svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>; // eslint-disable-line
-    const width = 1000;
-    const height = 800;
+    const width = 600;
+    const height = 400;
     const padding = 20; // Padding around the visualization
 
     // Scales
