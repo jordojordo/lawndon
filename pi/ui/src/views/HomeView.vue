@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UWBVisualization from '../components/UWBVisualization.vue'
+import UWBVisualization from '../components/UWBVisualization.vue';
 </script>
 
 <template>
