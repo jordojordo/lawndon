@@ -43,6 +43,10 @@ export default defineComponent({
           socket.on('uwb_data', (data: AnchorData[]) => {
             uwbData.value = data;
             updateVisualization();
+            if (uwbData?.value.length === 3) {
+              console.log('Incoming UWB data:', JSON.parse(JSON.stringify(uwbData.value)));
+            }
+
           });
         })
         .catch((error) => {
@@ -155,6 +159,7 @@ export default defineComponent({
 
       if (positions.length >= 3) {
         const [x, y] = calculateTagPosition(positions, distances);
+        updateScales(); // Add this to adjust scales
         drawTag(x, y);
       }
     }
