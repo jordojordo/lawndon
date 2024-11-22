@@ -25,22 +25,21 @@ export default defineComponent({
 
     // D3 variables
     let svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>; // eslint-disable-line
-    const width = 600;
-    const height = 400;
+    const width = 1000;
+    const height = 800;
+    const padding = 20; // Padding around the visualization
 
     // Scales
     let xScale: d3.ScaleLinear<number, number>;
     let yScale: d3.ScaleLinear<number, number>;
 
     onMounted(() => {
-      // Fetch the configuration file from the backend
       fetch('/api/config')
         .then((response) => response.json())
         .then((configData: AnchorConfig) => {
           parseConfiguration(configData);
           initVisualization();
 
-          // Listen for UWB data
           socket.on('uwb_data', (data: AnchorData[]) => {
             uwbData.value = data;
             updateVisualization();
@@ -66,16 +65,18 @@ export default defineComponent({
         return;
       }
 
+      const scalingFactor = 50; // Adjust to control visualization size
+
       positions[ids[0]] = [0, 0]; // First anchor at (0, 0)
 
-      const d1 = getDistance(ids[0], ids[1]);
+      const d1 = getDistance(ids[0], ids[1]) * scalingFactor;
       positions[ids[1]] = [d1, 0]; // Second anchor on x-axis
 
-      const d2 = getDistance(ids[0], ids[2]);
-      const d3 = getDistance(ids[1], ids[2]);
+      const d2 = getDistance(ids[0], ids[2]) * scalingFactor;
+      const d3 = getDistance(ids[1], ids[2]) * scalingFactor;
 
       const x = (d1 ** 2 + d2 ** 2 - d3 ** 2) / (2 * d1);
-      const y = Math.sqrt(d2 ** 2 - x ** 2);
+      const y = Math.sqrt(Math.max(0, d2 ** 2 - x ** 2)); // Ensure no NaN from negative sqrt
 
       positions[ids[2]] = [x, y];
 
@@ -95,13 +96,13 @@ export default defineComponent({
       const allX = Object.values(anchorPositions.value).map((pos) => pos[0]);
       const allY = Object.values(anchorPositions.value).map((pos) => pos[1]);
 
-      const minX = Math.min(...allX) - 5;
-      const maxX = Math.max(...allX) + 5;
-      const minY = Math.min(...allY) - 5;
-      const maxY = Math.max(...allY) + 5;
+      const minX = Math.min(...allX) - padding;
+      const maxX = Math.max(...allX) + padding;
+      const minY = Math.min(...allY) - padding;
+      const maxY = Math.max(...allY) + padding;
 
       xScale = d3.scaleLinear().domain([minX, maxX]).range([0, width]);
-      yScale = d3.scaleLinear().domain([minY, maxY]).range([height, 0]);
+      yScale = d3.scaleLinear().domain([minY, maxY]).range([0, height]);
     }
 
     function initVisualization() {
@@ -183,6 +184,7 @@ export default defineComponent({
         const F = r1 ** 2 - r3 ** 2 - x1 ** 2 + x3 ** 2 - y1 ** 2 + y3 ** 2;
 
         const denominator = A * E - B * D;
+
         if (denominator === 0) {
           console.error('Cannot solve, determinant is zero.');
           return [-1, -1];
