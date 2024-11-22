@@ -1,15 +1,18 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import net from 'net';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import path from 'path';
+import { resolve, join } from 'path';
 import cors from 'cors';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Load environment variables
+if (process.env.NODE_ENV === 'development') {
+  dotenv.config({ path: resolve(__dirname, '../.env.dev') });
+} else {
+  dotenv.config({ path: resolve(__dirname, '../.env.prod') });
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -17,17 +20,21 @@ const io = new Server(httpServer, {
   cors: { origin: '*' },
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+const TCP_PORT = process.env.TCP_PORT || 8080;
+
+// Paths for configuration and UI
+const CONFIG_PATH = process.env.CONFIG_PATH || resolve(__dirname, '../../config');
+const UI_PATH = process.env.UI_PATH || resolve(__dirname, '../../ui');
+
 app.use(cors()); // Allow all origins
 
 app.get('/api/config', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../config/anchorPositions.json'));
+  res.sendFile(join(__dirname, CONFIG_PATH, 'anchorPositions.json'));
 });
 
 // Proxy to Vite dev server in development
 if (process.env.NODE_ENV === 'development') {
-  const { createProxyMiddleware } = await import('http-proxy-middleware');
-
   app.use(
     '/',
     createProxyMiddleware({
@@ -38,9 +45,9 @@ if (process.env.NODE_ENV === 'development') {
   );
 } else {
   // Serve static files in production
-  app.use(express.static(path.join(__dirname, '../../ui')));
+  app.use(express.static(UI_PATH));
   app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../ui/index.html'));
+    res.sendFile(resolve(UI_PATH, 'index.html'));
   });
 }
 
@@ -48,7 +55,6 @@ io.on('connection', (socket) => {
   console.log('A client connected');
 });
 
-const TCP_PORT = 8080;
 const tcpServer = net.createServer((socket) => {
   console.log('UWB data source connected');
 
