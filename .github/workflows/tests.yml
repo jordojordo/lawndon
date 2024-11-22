@@ -87,4 +87,4 @@ jobs:
       - name: Verify package contents
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          tar -tf lawndon-pi.tar.gz
+          tar -df lawndon-pi.tar.gz lawndon-pi
