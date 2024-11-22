@@ -33,6 +33,8 @@ export default defineComponent({
     let xScale: d3.ScaleLinear<number, number>;
     let yScale: d3.ScaleLinear<number, number>;
 
+    const scalingFactor = 50; // Adjust to control visualization size
+
     onMounted(() => {
       fetch('/api/config')
         .then((response) => response.json())
@@ -70,7 +72,6 @@ export default defineComponent({
         return;
       }
 
-      const scalingFactor = 50; // Adjust to control visualization size
 
       positions[ids[0]] = [0, 0]; // First anchor at (0, 0)
 
@@ -169,7 +170,7 @@ export default defineComponent({
 
       uwbData.value.forEach((anchor) => {
         const anchorID = anchor.A;
-        const range = parseFloat(anchor.R);
+        const range = parseFloat(anchor.R) * scalingFactor; // Scale the range
         if (range <= 0) {
           console.warn(`Invalid distance for anchor ${anchorID}: ${range}. Skipping.`);
           return; // Skip invalid distances
