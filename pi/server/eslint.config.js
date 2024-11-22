@@ -1,25 +1,10 @@
-import pluginVue from 'eslint-plugin-vue';
-import vueTsEslintConfig from '@vue/eslint-config-typescript';
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting';
+import globals from 'globals';
 
 export default [
+  { languageOptions: { globals: globals.node } },
+  { ignores: ['dist/*', 'node_modules/*'] },
   {
-    name:  'app/files-to-lint',
-    files: ['**/*.{ts,mts,tsx,vue}'],
-  },
-
-  {
-    name:    'app/files-to-ignore',
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
-  },
-
-  ...pluginVue.configs['flat/essential'],
-  ...vueTsEslintConfig(),
-  skipFormatting,
-
-  {
-    rules: {
-      'vue/no-multiple-template-root':  'off',
+    'rules':       {
       'dot-notation':                   'off',
       'guard-for-in':                   'off',
       'new-cap':                        'off',
@@ -29,9 +14,6 @@ export default [
       'no-plusplus':                    'off',
       'no-useless-escape':              'off',
       'strict':                         'off',
-      'vue/html-self-closing':          'off',
-      'vue/no-v-html':                  'off',
-      'vue/multi-word-component-names': 'off',
 
       'array-bracket-spacing':             'warn',
       'arrow-parens':                      'warn',
@@ -54,7 +36,7 @@ export default [
       'newline-per-chained-call':          ['warn', { 'ignoreChainWithDepth': 4 }],
       'no-caller':                         'warn',
       'no-cond-assign':                    ['warn', 'except-parens'],
-      'no-console':                        'off',
+      'no-console':                        'warn',
       'no-debugger':                       'warn',
       'no-eq-null':                        'warn',
       'no-eval':                           'warn',
@@ -153,3 +135,4 @@ export default [
     }
   }
 ];
+

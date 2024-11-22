@@ -49,7 +49,6 @@ export default defineComponent({
             if (uwbData?.value.length === 3) {
               console.log('Incoming UWB data:', JSON.parse(JSON.stringify(uwbData.value)));
             }
-
           });
         })
         .catch((error) => {
@@ -69,6 +68,7 @@ export default defineComponent({
 
       if (ids.length < 3) {
         console.error('At least three anchors are required.');
+
         return;
       }
 
@@ -76,6 +76,7 @@ export default defineComponent({
       positions[ids[0]] = [0, 0]; // First anchor at (0, 0)
 
       const d1 = getDistance(ids[0], ids[1]) * scalingFactor;
+
       positions[ids[1]] = [d1, 0]; // Second anchor on x-axis
 
       const d2 = getDistance(ids[0], ids[2]) * scalingFactor;
@@ -92,8 +93,8 @@ export default defineComponent({
 
     function getDistance(id1: string, id2: string): number {
       return (
-        anchorDistances.value[`${id1}-${id2}`] ||
-        anchorDistances.value[`${id2}-${id1}`] ||
+        anchorDistances.value[`${ id1 }-${ id2 }`] ||
+        anchorDistances.value[`${ id2 }-${ id1 }`] ||
         0
       );
     }
@@ -125,10 +126,10 @@ export default defineComponent({
     }
 
     function drawAnchors() {
-      const anchors = Object.entries(anchorPositions.value);
+      const anchors = Object.entries(anchorPositions.value) as [string, [number, number]][];
 
       // Bind data to anchor circles
-      const anchorCircles = svg.selectAll('.anchor')
+      const anchorCircles = svg.selectAll<SVGCircleElement, [string, [number, number]]>('.anchor')
         .data(anchors, (d) => d[0]);
 
       // Enter selection
@@ -145,7 +146,7 @@ export default defineComponent({
       anchorCircles.exit().remove();
 
       // Bind data to anchor labels
-      const anchorLabels = svg.selectAll('.anchor-label')
+      const anchorLabels = svg.selectAll<SVGTextElement, [string, [number, number]]>('.anchor-label')
         .data(anchors, (d) => d[0]);
 
       // Enter selection
@@ -157,12 +158,11 @@ export default defineComponent({
         .merge(anchorLabels as any) // eslint-disable-line
         .attr('x', (d) => xScale(d[1][0]) + 5)
         .attr('y', (d) => yScale(d[1][1]) - 5)
-        .text((d) => `A${d[0]}`);
+        .text((d) => `A${ d[0] }`);
 
       // Exit selection
       anchorLabels.exit().remove();
     }
-
 
     function updateVisualization() {
       const positions: [number, number][] = [];
@@ -171,8 +171,10 @@ export default defineComponent({
       uwbData.value.forEach((anchor) => {
         const anchorID = anchor.A;
         const range = parseFloat(anchor.R) * scalingFactor; // Scale the range
+
         if (range <= 0) {
-          console.warn(`Invalid distance for anchor ${anchorID}: ${range}. Skipping.`);
+          console.warn(`Invalid distance for anchor ${ anchorID }: ${ range }. Skipping.`);
+
           return; // Skip invalid distances
         }
         if (anchorPositions.value[anchorID]) {
@@ -183,6 +185,7 @@ export default defineComponent({
 
       if (positions.length >= 3) {
         const [x, y] = calculateTagPosition(positions, distances);
+
         if (x !== -1 && y !== -1) {
           // Update scales to include tag position
           updateScales([x, y]);
@@ -218,6 +221,7 @@ export default defineComponent({
     ): [number, number] {
       if (positions.length < 3) {
         console.error('At least three anchors are required.');
+
         return [-1, -1];
       }
 
@@ -240,6 +244,7 @@ export default defineComponent({
 
         if (denominator === 0) {
           console.error('Cannot solve, determinant is zero.');
+
           return [-1, -1];
         }
 
@@ -249,6 +254,7 @@ export default defineComponent({
         return [x, y];
       } catch (error) {
         console.error('Error calculating position:', error);
+
         return [-1, -1];
       }
     }
