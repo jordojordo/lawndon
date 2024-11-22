@@ -7,7 +7,14 @@
     "install:server": "pnpm install --prefix server",
     "build:ui": "cd ui && pnpm build",
     "build:server": "cd server && pnpm build",
-    "start": "node server/dist/server.js"
+    "start": "node server/dist/server.js",
+    "dev": "concurrently -k -n SERVER,UI \"pnpm dev:server\" \"pnpm dev:ui\"",
+    "dev:ui": "pnpm --prefix ui dev",
+    "dev:server": "NODE_ENV=development pnpm --prefix server dev"
   },
-  "packageManager": "pnpm@9.14.2"
+  "packageManager": "pnpm@9.14.2",
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "ts-node-dev": "^2.0.0"
+  }
 }

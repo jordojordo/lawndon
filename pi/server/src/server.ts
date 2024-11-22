@@ -12,7 +12,7 @@ const io = new Server(httpServer, {
 
 const PORT = 5000;
 
-app.use(express.static(path.join(__dirname + '../../ui/index.html')));
+app.use(express.static(path.join(__dirname + '../../ui')));
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '../../ui/index.html'));

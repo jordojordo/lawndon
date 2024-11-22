@@ -2,11 +2,12 @@
   "name": "uwb-server",
   "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
     "start": "node dist/server.js",
-    "build": "tsc --outDir dist"
+    "build": "tsc --outDir dist",
+    "dev": "node --experimental-loader ts-node/esm --no-warnings --watch ./src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,9 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.9.1",
+    "http-proxy-middleware": "^3.0.3",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.3"
   }
 }
