@@ -2,7 +2,14 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import net from 'net';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import path from 'path';
+import cors from 'cors';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -11,16 +18,31 @@ const io = new Server(httpServer, {
 });
 
 const PORT = 5000;
-
-app.use(express.static(path.join(__dirname + '../../ui')));
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname + '../../ui/index.html'));
-});
+app.use(cors()); // Allow all origins
 
 app.get('/api/config', (req, res) => {
   res.sendFile(path.join(__dirname, '../../config/anchorPositions.json'));
 });
+
+// Proxy to Vite dev server in development
+if (process.env.NODE_ENV === 'development') {
+  const { createProxyMiddleware } = await import('http-proxy-middleware');
+
+  app.use(
+    '/',
+    createProxyMiddleware({
+      target: 'http://localhost:5173',
+      changeOrigin: true,
+      ws: true,
+    })
+  );
+} else {
+  // Serve static files in production
+  app.use(express.static(path.join(__dirname, '../../ui')));
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../ui/index.html'));
+  });
+}
 
 io.on('connection', (socket) => {
   console.log('A client connected');

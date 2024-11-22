@@ -25,24 +25,31 @@ export default defineComponent({
 
     // D3 variables
     let svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>; // eslint-disable-line
-    const width = 1000;
-    const height = 800;
+    const width = 600;
+    const height = 400;
     const padding = 20; // Padding around the visualization
 
     // Scales
     let xScale: d3.ScaleLinear<number, number>;
     let yScale: d3.ScaleLinear<number, number>;
 
+    const scalingFactor = 50; // Adjust to control visualization size
+
     onMounted(() => {
       fetch('/api/config')
         .then((response) => response.json())
         .then((configData: AnchorConfig) => {
+          console.log('## configData:', configData);
           parseConfiguration(configData);
           initVisualization();
 
           socket.on('uwb_data', (data: AnchorData[]) => {
             uwbData.value = data;
             updateVisualization();
+            if (uwbData?.value.length === 3) {
+              console.log('Incoming UWB data:', JSON.parse(JSON.stringify(uwbData.value)));
+            }
+
           });
         })
         .catch((error) => {
@@ -65,7 +72,6 @@ export default defineComponent({
         return;
       }
 
-      const scalingFactor = 50; // Adjust to control visualization size
 
       positions[ids[0]] = [0, 0]; // First anchor at (0, 0)
 
@@ -92,9 +98,14 @@ export default defineComponent({
       );
     }
 
-    function updateScales() {
+    function updateScales(tagPosition?: [number, number]) {
       const allX = Object.values(anchorPositions.value).map((pos) => pos[0]);
       const allY = Object.values(anchorPositions.value).map((pos) => pos[1]);
+
+      if (tagPosition) {
+        allX.push(tagPosition[0]);
+        allY.push(tagPosition[1]);
+      }
 
       const minX = Math.min(...allX) - padding;
       const maxX = Math.max(...allX) + padding;
@@ -102,7 +113,7 @@ export default defineComponent({
       const maxY = Math.max(...allY) + padding;
 
       xScale = d3.scaleLinear().domain([minX, maxX]).range([0, width]);
-      yScale = d3.scaleLinear().domain([minY, maxY]).range([0, height]);
+      yScale = d3.scaleLinear().domain([minY, maxY]).range([height, 0]); // Invert y-axis for SVG coordinates
     }
 
     function initVisualization() {
@@ -116,29 +127,42 @@ export default defineComponent({
     function drawAnchors() {
       const anchors = Object.entries(anchorPositions.value);
 
-      svg
-        .selectAll('.anchor')
-        .data(anchors)
-        .enter()
+      // Bind data to anchor circles
+      const anchorCircles = svg.selectAll('.anchor')
+        .data(anchors, (d) => d[0]);
+
+      // Enter selection
+      anchorCircles.enter()
         .append('circle')
         .attr('class', 'anchor')
-        .attr('cx', (d) => xScale(d[1][0]))
-        .attr('cy', (d) => yScale(d[1][1]))
         .attr('r', 5)
-        .attr('fill', 'green');
+        .attr('fill', 'green')
+        .merge(anchorCircles as any) // eslint-disable-line
+        .attr('cx', (d) => xScale(d[1][0]))
+        .attr('cy', (d) => yScale(d[1][1]));
 
-      svg
-        .selectAll('.anchor-label')
-        .data(anchors)
-        .enter()
+      // Exit selection
+      anchorCircles.exit().remove();
+
+      // Bind data to anchor labels
+      const anchorLabels = svg.selectAll('.anchor-label')
+        .data(anchors, (d) => d[0]);
+
+      // Enter selection
+      anchorLabels.enter()
         .append('text')
         .attr('class', 'anchor-label')
+        .attr('font-size', '12px')
+        .attr('fill', 'black')
+        .merge(anchorLabels as any) // eslint-disable-line
         .attr('x', (d) => xScale(d[1][0]) + 5)
         .attr('y', (d) => yScale(d[1][1]) - 5)
-        .text((d) => `A${d[0]}`)
-        .attr('font-size', '12px')
-        .attr('fill', 'black');
+        .text((d) => `A${d[0]}`);
+
+      // Exit selection
+      anchorLabels.exit().remove();
     }
+
 
     function updateVisualization() {
       const positions: [number, number][] = [];
@@ -146,7 +170,11 @@ export default defineComponent({
 
       uwbData.value.forEach((anchor) => {
         const anchorID = anchor.A;
-        const range = parseFloat(anchor.R);
+        const range = parseFloat(anchor.R) * scalingFactor; // Scale the range
+        if (range <= 0) {
+          console.warn(`Invalid distance for anchor ${anchorID}: ${range}. Skipping.`);
+          return; // Skip invalid distances
+        }
         if (anchorPositions.value[anchorID]) {
           positions.push(anchorPositions.value[anchorID]);
           distances.push(range);
@@ -155,9 +183,34 @@ export default defineComponent({
 
       if (positions.length >= 3) {
         const [x, y] = calculateTagPosition(positions, distances);
-        drawTag(x, y);
+        if (x !== -1 && y !== -1) {
+          // Update scales to include tag position
+          updateScales([x, y]);
+          // Redraw anchors and tag
+          drawVisualization(x, y);
+        } else {
+          console.error('Invalid tag position calculated.');
+          svg.selectAll('.tag').remove(); // Remove tag if position is invalid
+        }
+      } else {
+        console.error('Not enough valid anchors with positive distances.');
+        svg.selectAll('.tag').remove(); // Remove tag if not enough data
       }
     }
+
+    function drawVisualization(tagX: number, tagY: number) {
+      // Clear existing anchors and tag
+      svg.selectAll('.anchor').remove();
+      svg.selectAll('.anchor-label').remove();
+      svg.selectAll('.tag').remove();
+
+      // Redraw anchors
+      drawAnchors();
+
+      // Draw tag
+      drawTag(tagX, tagY);
+    }
+
 
     function calculateTagPosition(
       positions: [number, number][],
@@ -204,15 +257,22 @@ export default defineComponent({
       svg.selectAll('.tag').remove();
 
       if (x !== -1 && y !== -1) {
+        const scaledX = xScale(x);
+        const scaledY = yScale(y);
+
+        console.log('Tag position:', x, y);
+        console.log('Scaled tag position:', scaledX, scaledY);
+
         svg
           .append('circle')
           .attr('class', 'tag')
-          .attr('cx', xScale(x))
-          .attr('cy', yScale(y))
+          .attr('cx', scaledX)
+          .attr('cy', scaledY)
           .attr('r', 5)
           .attr('fill', 'blue');
       }
     }
+
 
     return {};
   },
