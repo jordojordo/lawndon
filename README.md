@@ -1,4 +1,4 @@
-[![Build Tests](https://github.com/jordojordo/lawndon-lite/actions/workflows/tests.yml/badge.svg?event=schedule)](https://github.com/jordojordo/lawndon-lite/actions/workflows/tests.yml)
+[![Build Tests](https://github.com/jordojordo/lawndon/actions/workflows/tests.yaml/badge.svg?event=schedule)](https://github.com/jordojordo/lawndon/actions/workflows/tests.yaml)
 
 # Lawndon Lite
 
