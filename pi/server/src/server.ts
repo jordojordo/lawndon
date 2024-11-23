@@ -1,18 +1,13 @@
-import dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import net from 'net';
-import { resolve, join } from 'path';
+import { fileURLToPath } from 'url';
+import { resolve, join, dirname } from 'path';
 import cors from 'cors';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 
-// Load environment variables
-if (process.env.NODE_ENV === 'development') {
-  dotenv.config({ path: resolve(__dirname, '../.env.dev') });
-} else {
-  dotenv.config({ path: resolve(__dirname, '../.env.prod') });
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const httpServer = createServer(app);
@@ -23,33 +18,20 @@ const io = new Server(httpServer, {
 const PORT = process.env.PORT || 5000;
 const TCP_PORT = process.env.TCP_PORT || 8080;
 
-// Paths for configuration and UI
 const CONFIG_PATH = process.env.CONFIG_PATH || resolve(__dirname, '../../config');
-const UI_PATH = process.env.UI_PATH || resolve(__dirname, '../../ui');
 
 app.use(cors()); // Allow all origins
 
 app.get('/api/config', (req, res) => {
-  res.sendFile(join(__dirname, CONFIG_PATH, 'anchorPositions.json'));
-});
+  const configPath = join(CONFIG_PATH, 'anchorPositions.json');
 
-// Proxy to Vite dev server in development
-if (process.env.NODE_ENV === 'development') {
-  app.use(
-    '/',
-    createProxyMiddleware({
-      target: 'http://localhost:5173',
-      changeOrigin: true,
-      ws: true,
-    })
-  );
-} else {
-  // Serve static files in production
-  app.use(express.static(UI_PATH));
-  app.get('/', (req, res) => {
-    res.sendFile(resolve(UI_PATH, 'index.html'));
+  res.sendFile(configPath, (err) => {
+    if (err) {
+      console.error('Error sending file:', err);
+      res.status(500).send('Error loading configuration file.');
+    }
   });
-}
+});
 
 io.on('connection', (socket) => {
   console.log('A client connected');

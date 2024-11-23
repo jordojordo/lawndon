@@ -1,0 +1,27 @@
+# Build stage
+FROM node:22-alpine AS build
+WORKDIR /usr/src/app
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_ENV=production
+ENV CONFIG_PATH=/usr/src/app/config
+
+RUN corepack enable
+COPY server/package*.json ./
+RUN pnpm install
+
+COPY server ./server
+WORKDIR /usr/src/app/server
+RUN pnpm build
+
+# Runtime stage
+FROM node:22-alpine
+WORKDIR /usr/src/app
+
+COPY --from=build /usr/src/app/server/dist ./dist
+COPY --from=build /usr/src/app/server/node_modules ./node_modules
+COPY config ./config
+
+EXPOSE 5000 8080
+CMD ["node", "dist/server.js"]

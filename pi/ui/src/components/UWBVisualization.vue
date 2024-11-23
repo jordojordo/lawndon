@@ -4,18 +4,19 @@ import * as d3 from 'd3';
 import { Socket } from 'socket.io-client';
 
 interface AnchorData {
-  A: string; // Anchor ID
-  R: string; // Range
+  A: string // Anchor ID
+  R: string // Range
 }
 
 interface AnchorConfig {
-  anchors: string[];
-  distances: { [key: string]: number };
+  anchors: string[]
+  distances: { [key: string]: number }
 }
 
 export default defineComponent({
   name: 'UWBVisualization',
   setup() {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
     const socket = inject('socket') as Socket;
 
     const uwbData = ref<AnchorData[]>([]);
@@ -24,7 +25,7 @@ export default defineComponent({
     const anchorIDs = ref<string[]>([]);
 
     // D3 variables
-    let svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>; // eslint-disable-line
+    let svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> // eslint-disable-line
     const width = 600;
     const height = 400;
     const padding = 20; // Padding around the visualization
@@ -36,7 +37,7 @@ export default defineComponent({
     const scalingFactor = 50; // Adjust to control visualization size
 
     onMounted(() => {
-      fetch('/api/config')
+      fetch(`${ backendUrl }/api/config`)
         .then((response) => response.json())
         .then((configData: AnchorConfig) => {
           console.log('## configData:', configData);
@@ -72,7 +73,6 @@ export default defineComponent({
         return;
       }
 
-
       positions[ids[0]] = [0, 0]; // First anchor at (0, 0)
 
       const d1 = getDistance(ids[0], ids[1]) * scalingFactor;
@@ -92,11 +92,7 @@ export default defineComponent({
     }
 
     function getDistance(id1: string, id2: string): number {
-      return (
-        anchorDistances.value[`${ id1 }-${ id2 }`] ||
-        anchorDistances.value[`${ id2 }-${ id1 }`] ||
-        0
-      );
+      return anchorDistances.value[`${ id1 }-${ id2 }`] || anchorDistances.value[`${ id2 }-${ id1 }`] || 0;
     }
 
     function updateScales(tagPosition?: [number, number]) {
@@ -129,11 +125,13 @@ export default defineComponent({
       const anchors = Object.entries(anchorPositions.value) as [string, [number, number]][];
 
       // Bind data to anchor circles
-      const anchorCircles = svg.selectAll<SVGCircleElement, [string, [number, number]]>('.anchor')
+      const anchorCircles = svg
+        .selectAll<SVGCircleElement, [string, [number, number]]>('.anchor')
         .data(anchors, (d) => d[0]);
 
       // Enter selection
-      anchorCircles.enter()
+      anchorCircles
+        .enter()
         .append('circle')
         .attr('class', 'anchor')
         .attr('r', 5)
@@ -146,11 +144,13 @@ export default defineComponent({
       anchorCircles.exit().remove();
 
       // Bind data to anchor labels
-      const anchorLabels = svg.selectAll<SVGTextElement, [string, [number, number]]>('.anchor-label')
+      const anchorLabels = svg
+        .selectAll<SVGTextElement, [string, [number, number]]>('.anchor-label')
         .data(anchors, (d) => d[0]);
 
       // Enter selection
-      anchorLabels.enter()
+      anchorLabels
+        .enter()
         .append('text')
         .attr('class', 'anchor-label')
         .attr('font-size', '12px')
@@ -214,10 +214,9 @@ export default defineComponent({
       drawTag(tagX, tagY);
     }
 
-
     function calculateTagPosition(
       positions: [number, number][],
-      distances: number[]
+      distances: number[],
     ): [number, number] {
       if (positions.length < 3) {
         console.error('At least three anchors are required.');
@@ -278,7 +277,6 @@ export default defineComponent({
           .attr('fill', 'blue');
       }
     }
-
 
     return {};
   },

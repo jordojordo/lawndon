@@ -2,11 +2,12 @@
   "name": "uwb-server",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/server.cjs",
+  "main": "dist/server.js",
+  "type": "module",
   "scripts": {
-    "start": "node dist/server.cjs",
-    "build": "NODE_ENV=production node esbuild.config.js",
-    "dev": "nodemon --watch src --ext ts --exec 'ts-node ./src/server.ts'",
+    "start": "node dist/server.js",
+    "build": "tsc --outDir dist",
+    "dev": "NODE_ENV=development nodemon --watch src --ext ts --exec 'node --loader ts-node/esm ./src/server.ts'",
     "lint": "npx eslint .",
     "format": "npx eslint . --fix"
   },
@@ -23,9 +24,9 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
+    "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.9.1",
-    "esbuild": "^0.24.0",
+    "@types/node": "^22.9.3",
     "eslint": "^9.15.0",
     "globals": "^15.12.0",
     "http-proxy-middleware": "^3.0.3",

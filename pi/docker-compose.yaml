@@ -1,0 +1,28 @@
+services:
+  server:
+    image: ghcr.io/jordojordo/lawndon-pi-server:latest
+    environment:
+      NODE_ENV: production
+      CONFIG_PATH: /usr/src/app/config
+    ports:
+      - "5000:5000" # WebSocket and API
+      - "8080:8080" # ESP32 module communication
+    volumes:
+      - ./config:/usr/src/app/config:ro # Mount config for anchor positions
+    networks:
+      - app_network
+
+  ui:
+    image: ghcr.io/jordojordo/uwb-ui:latest
+    environment:
+      VITE_NODE_ENV: production
+    ports:
+      - "80:80" # Expose UI
+    depends_on:
+      - server
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

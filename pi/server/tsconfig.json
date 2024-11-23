@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "target": "ESNext",
     "outDir": "./dist",
     "rootDir": "./src",
@@ -10,7 +11,9 @@
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "paths": {
+      "@src/*": ["./src/*"],
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

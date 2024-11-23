@@ -8,7 +8,7 @@ on:
     - cron: "0 4 * * 4"
 
 jobs:
-  build-lawndon:
+  build-lawndon-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -41,7 +41,7 @@ jobs:
           cli-compile-flags: |
             - --export-binaries
 
-  package-lawndon-pi:
+  build-lawndon-pi-test:
     runs-on: ubuntu-latest
     env:
       WORKING_DIR: ./pi
@@ -79,12 +79,12 @@ jobs:
         run: |
           pnpm build:server
 
-      - name: Run package script
+      - name: Test Docker build for Server
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          ./package.sh
+          docker build --no-cache --file ./Dockerfile.server --tag lawndon-pi-server-test .
 
-      - name: Verify package contents
+      - name: Test Docker build for UI
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          tar -df lawndon-pi.tar.gz lawndon-pi
+          docker build --no-cache --file ./Dockerfile.ui --tag lawndon-pi-ui-test .
