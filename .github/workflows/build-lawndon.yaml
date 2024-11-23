@@ -85,10 +85,9 @@ jobs:
 
       - name: Build and push server image
         uses: docker/build-push-action@v4
-        working-directory: ${{ env.WORKING_DIR }}
         with:
-          context: .
-          file: ./Dockerfile.server
+          context: ./pi
+          file: ./pi/Dockerfile.server
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
@@ -97,10 +96,9 @@ jobs:
 
       - name: Build and push UI image
         uses: docker/build-push-action@v4
-        working-directory: ${{ env.WORKING_DIR }}
         with:
-          context: .
-          file: ./Dockerfile.ui
+          context: ./pi
+          file: ./pi/Dockerfile.ui
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
