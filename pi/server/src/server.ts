@@ -3,10 +3,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import net from 'net';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import path from 'path';
+import { resolve, join, dirname } from 'path';
 import cors from 'cors';
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,38 +15,28 @@ const io = new Server(httpServer, {
   cors: { origin: '*' },
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+const TCP_PORT = process.env.TCP_PORT || 8080;
+
+const CONFIG_PATH = process.env.CONFIG_PATH || resolve(__dirname, '../../config');
+
 app.use(cors()); // Allow all origins
 
 app.get('/api/config', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../config/anchorPositions.json'));
-});
+  const configPath = join(CONFIG_PATH, 'anchorPositions.json');
 
-// Proxy to Vite dev server in development
-if (process.env.NODE_ENV === 'development') {
-  const { createProxyMiddleware } = await import('http-proxy-middleware');
-
-  app.use(
-    '/',
-    createProxyMiddleware({
-      target: 'http://localhost:5173',
-      changeOrigin: true,
-      ws: true,
-    })
-  );
-} else {
-  // Serve static files in production
-  app.use(express.static(path.join(__dirname, '../../ui')));
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../ui/index.html'));
+  res.sendFile(configPath, (err) => {
+    if (err) {
+      console.error('Error sending file:', err);
+      res.status(500).send('Error loading configuration file.');
+    }
   });
-}
+});
 
 io.on('connection', (socket) => {
   console.log('A client connected');
 });
 
-const TCP_PORT = 8080;
 const tcpServer = net.createServer((socket) => {
   console.log('UWB data source connected');
 

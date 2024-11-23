@@ -9,7 +9,8 @@ import router from './router';
 
 const app = createApp(App);
 
-const socket: Socket = io('http://0.0.0.0:5000', { transports: ['websocket'] });
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const socket: Socket = io(backendUrl, { transports: ['websocket'] });
 
 app.provide('socket', socket);
 

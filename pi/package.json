@@ -2,6 +2,7 @@
   "name": "lawndon-pi",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "install:ui": "pnpm install --prefix ui",
     "install:server": "pnpm install --prefix server",
@@ -10,7 +11,7 @@
     "start": "node server/dist/server.js",
     "dev": "concurrently -k -n SERVER,UI \"pnpm dev:server\" \"pnpm dev:ui\"",
     "dev:ui": "pnpm --prefix ui dev",
-    "dev:server": "NODE_ENV=development pnpm --prefix server dev"
+    "dev:server": "pnpm --prefix server dev"
   },
   "packageManager": "pnpm@9.14.2",
   "devDependencies": {

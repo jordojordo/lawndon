@@ -1,0 +1,22 @@
+# Build stage
+FROM node:22-alpine AS build
+WORKDIR /usr/src/app
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV VITE_NODE_ENV=production
+
+RUN corepack enable
+COPY ui/package*.json ./
+RUN pnpm install
+
+COPY ui ./ui
+WORKDIR /usr/src/app/ui
+RUN pnpm build
+
+# Runtime stage
+FROM nginx:alpine
+COPY --from=build /usr/src/app/ui/dist /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
