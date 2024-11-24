@@ -79,12 +79,30 @@ jobs:
         run: |
           pnpm build:server
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --allow-insecure-entitlement security.insecure
+          install: true
+
       - name: Test Docker build for Server
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          docker build --no-cache --file ./Dockerfile.server --tag lawndon-pi-server-test .
+        uses: docker/build-push-action@v4
+        with:
+          context: ./pi
+          file: ./pi/Dockerfile.server
+          push: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:${{ github.sha }}
 
       - name: Test Docker build for UI
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          docker build --no-cache --file ./Dockerfile.ui --tag lawndon-pi-ui-test .
+        uses: docker/build-push-action@v4
+        with:
+          context: ./pi
+          file: ./pi/Dockerfile.ui
+          push: false
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:${{ github.sha }}
