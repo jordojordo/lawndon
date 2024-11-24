@@ -5,10 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "vue-tsc --build --force && vite build",
     "preview": "vite preview",
-    "build-only": "vite build",
-    "type-check": "vue-tsc --build --force",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },

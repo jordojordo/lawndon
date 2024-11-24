@@ -4,12 +4,11 @@ WORKDIR /usr/src/app
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV NODE_ENV=production
 ENV CONFIG_PATH=/usr/src/app/config
 
 RUN corepack enable
 COPY server/package*.json ./
-RUN pnpm install
+RUN pnpm install --prod=false
 
 COPY server ./server
 WORKDIR /usr/src/app/server
