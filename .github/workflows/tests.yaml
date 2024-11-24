@@ -91,7 +91,7 @@ jobs:
           context: ./pi
           file: ./pi/Dockerfile.server
           push: false
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:test
 
@@ -101,6 +101,6 @@ jobs:
           context: ./pi
           file: ./pi/Dockerfile.ui
           push: false
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           tags: |
             ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:test

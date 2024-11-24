@@ -4,14 +4,14 @@ WORKDIR /usr/src/app
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV VITE_NODE_ENV=production
 
 RUN corepack enable
-COPY ui/package*.json ./
-RUN pnpm install
+COPY ui/package.json ui/pnpm-lock.yaml ./
+RUN pnpm install --prod=false
 
 COPY ui ./ui
 WORKDIR /usr/src/app/ui
+ENV PATH="/usr/src/app/node_modules/.bin:$PATH"
 RUN pnpm build
 
 # Runtime stage
