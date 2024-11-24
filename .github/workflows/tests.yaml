@@ -93,8 +93,7 @@ jobs:
           push: false
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:test
 
       - name: Test Docker build for UI
         uses: docker/build-push-action@v4
@@ -104,5 +103,4 @@ jobs:
           push: false
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:${{ github.ref_name }}
-            ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:test
