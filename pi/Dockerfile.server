@@ -7,11 +7,11 @@ ENV PATH="$PNPM_HOME:$PATH"
 ENV CONFIG_PATH=/usr/src/app/config
 
 RUN corepack enable
-COPY server/package*.json ./
+COPY server/package.json server/pnpm-lock.yaml ./server/
+WORKDIR /usr/src/app/server
 RUN pnpm install --prod=false
 
-COPY server ./server
-WORKDIR /usr/src/app/server
+COPY server ./
 RUN pnpm build
 
 # Runtime stage
