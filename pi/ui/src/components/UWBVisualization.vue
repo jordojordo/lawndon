@@ -16,7 +16,7 @@ interface AnchorConfig {
 export default defineComponent({
   name: 'UWBVisualization',
   setup() {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = import.meta.env.VITE_API_URL || window.location.origin;
     const socket = inject('socket') as Socket;
 
     const uwbData = ref<AnchorData[]>([]);

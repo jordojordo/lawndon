@@ -93,6 +93,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:${{ github.ref_name }}
             ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-server:latest
 
       - name: Build and push UI image
         uses: docker/build-push-action@v6
@@ -104,3 +105,4 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:${{ github.ref_name }}
             ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/lawndon-pi-ui:latest
