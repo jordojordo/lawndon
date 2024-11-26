@@ -13,9 +13,7 @@ services:
       - app_network
 
   ui:
-    image: ghcr.io/jordojordo/uwb-ui:latest
-    environment:
-      VITE_NODE_ENV: production
+    image: ghcr.io/jordojordo/lawndon-pi-ui:latest
     ports:
       - "80:80" # Expose UI
     depends_on:

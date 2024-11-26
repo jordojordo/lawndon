@@ -9,7 +9,7 @@ import router from './router';
 
 const app = createApp(App);
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const backendUrl = import.meta.env.VITE_API_URL || window.location.origin;
 const socket: Socket = io(backendUrl, { transports: ['websocket'] });
 
 app.provide('socket', socket);
