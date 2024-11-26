@@ -7,14 +7,22 @@ import { io, Socket } from 'socket.io-client';
 import App from './App.vue';
 import router from './router';
 
-const app = createApp(App);
+async function loadConfig() {
+  const response = await fetch('/apiConfig.json');
 
-const backendUrl = import.meta.env.VITE_API_URL || window.location.origin;
-const socket: Socket = io(backendUrl, { transports: ['websocket'] });
+  return response.json();
+}
 
-app.provide('socket', socket);
+loadConfig().then((config) => {
+  const backendUrl = config.API_URL || window.location.origin;
+  const socket: Socket = io(backendUrl, { transports: ['websocket'] });
 
-app.use(createPinia());
-app.use(router);
+  const app = createApp(App);
 
-app.mount('#app');
+  app.provide('socket', socket);
+
+  app.use(createPinia());
+  app.use(router);
+
+  app.mount('#app');
+});

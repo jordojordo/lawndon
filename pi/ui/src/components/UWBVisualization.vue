@@ -16,7 +16,7 @@ interface AnchorConfig {
 export default defineComponent({
   name: 'UWBVisualization',
   setup() {
-    const backendUrl = import.meta.env.VITE_API_URL || window.location.origin;
+    const backendUrl = ref('');
     const socket = inject('socket') as Socket;
 
     const uwbData = ref<AnchorData[]>([]);
@@ -36,25 +36,45 @@ export default defineComponent({
 
     const scalingFactor = 50; // Adjust to control visualization size
 
-    onMounted(() => {
-      fetch(`${ backendUrl }/api/config`)
-        .then((response) => response.json())
-        .then((configData: AnchorConfig) => {
-          console.log('## configData:', configData);
-          parseConfiguration(configData);
-          initVisualization();
+    const loadRuntimeConfig = async() => {
+      try {
+        const response = await fetch('/apiConfig.json'); // Fetch runtime configuration
+        const config = await response.json();
 
-          socket.on('uwb_data', (data: AnchorData[]) => {
-            uwbData.value = data;
-            updateVisualization();
-            if (uwbData?.value.length === 3) {
-              console.log('Incoming UWB data:', JSON.parse(JSON.stringify(uwbData.value)));
-            }
-          });
-        })
-        .catch((error) => {
-          console.error('Failed to load configuration:', error);
+        backendUrl.value = config.API_URL || window.location.origin;
+        console.log('Loaded runtime config:', backendUrl.value);
+      } catch (error) {
+        console.error('Failed to load runtime config:', error);
+        backendUrl.value = window.location.origin; // Fallback to window.location.origin
+      }
+    };
+
+
+    const fetchBackendConfig = async() => {
+      try {
+        const response = await fetch(`${ backendUrl.value }/api/config`);
+        const configData: AnchorConfig = await response.json();
+
+        console.log('Backend configuration:', configData);
+        parseConfiguration(configData);
+        initVisualization();
+
+        socket.on('uwb_data', (data: AnchorData[]) => {
+          uwbData.value = data;
+          updateVisualization();
+
+          if (uwbData?.value.length === 3) {
+            console.log('Incoming UWB data:', JSON.parse(JSON.stringify(uwbData.value)));
+          }
         });
+      } catch (error) {
+        console.error('Failed to load backend configuration:', error);
+      }
+    };
+
+    onMounted(async() => {
+      await loadRuntimeConfig(); // Load runtime config first
+      await fetchBackendConfig(); // Fetch backend configuration
     });
 
     function parseConfiguration(config: AnchorConfig) {
