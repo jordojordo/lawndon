@@ -18,8 +18,27 @@ const uint8_t PIN_RST = 27; // Reset pin
 const uint8_t PIN_IRQ = 34; // IRQ pin
 const uint8_t PIN_SS = 21;  // SPI select pin
 
-char anchorAddress[] = "80:00:22:EA:82:60:3B:9A";
-float targetDistance = 3.078; // Measured distance to anchor in meters
+/*
+=============================ANCHOR ADDRESS=============================
+  These values are used to differentiate between the devices.
+  When calibrating the antenna delay, the anchorAddress will
+  be used to identify the device being calibrated.
+  Short address and MAC address for the anchors:
+    "50:00:22:EA:82:60:3B:9A", // 80
+    "51:00:22:EA:82:60:3B:9A", // 81
+    "52:00:22:EA:82:60:3B:9A"  // 82
+========================================================================
+*/
+char anchorAddress[] = "80:00:22:EA:82:60:3B:9A"; // Modify this value
+
+/*
+============================MEASURE DISTANCE============================
+  This value is used to calibrate the antenna delay, it is the distance
+  between the two devices. This value should be measured first and then
+  used to calibrate the antenna delay.
+========================================================================
+*/
+float targetDistance = 3.078; // Modify this value
 
 uint16_t antennaDelay = 16600; // Starting value
 uint16_t delayDelta = 100;     // Initial binary search step size
