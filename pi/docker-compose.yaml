@@ -17,7 +17,7 @@ services:
     ports:
       - "80:80" # Expose UI
     volumes:
-      - ./apiConfig.json:/usr/share/nginx/html/apiConfig.json:ro # Mount config for API
+      - ./apiConfig.json:/app/apiConfig.json:ro # Mount config for API
     depends_on:
       - server
     networks:
