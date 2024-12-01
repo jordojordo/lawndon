@@ -15,6 +15,7 @@ RUN pnpm build
 
 # Runtime stage
 FROM nginx:alpine
+
 COPY --from=build /usr/src/app/ui/dist /app
 COPY --from=build /usr/src/app/ui/nginx.conf /etc/nginx/nginx.conf
 
